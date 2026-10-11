@@ -723,6 +723,22 @@ for (const supportedVersion of mineflayer.testedVersions) {
       })
     })
 
+    describe('chunk batches', () => {
+      it('does not poison chunksPerTick on an empty chunk batch', function (done) {
+        if (!bot.registry.version['>=']('1.20.2')) return this.skip()
+        server.on('playerJoin', (client) => {
+          client.write('login', bot.test.generateLoginPacket())
+          client.on('chunk_batch_received', (packet) => {
+            assert.ok(Number.isFinite(packet.chunksPerTick), `chunksPerTick was ${packet.chunksPerTick}`)
+            assert.ok(packet.chunksPerTick > 0, `chunksPerTick was ${packet.chunksPerTick}`)
+            done()
+          })
+          client.write('chunk_batch_start', {})
+          client.write('chunk_batch_finished', { batchSize: 0 })
+        })
+      })
+    })
+
     describe('world', () => {
       const pos = vec3(1, 65, 1)
       const goldId = 41
